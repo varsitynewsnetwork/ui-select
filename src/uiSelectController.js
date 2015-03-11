@@ -61,9 +61,10 @@ uis.controller('uiSelectCtrl',
   ctrl.activate = function(initSearchValue, avoidReset) {
     if (!ctrl.disabled  && !ctrl.open) {
       if(!avoidReset) _resetSearchInput();
-      if (ctrl.focusser) ctrl.focusser.prop('disabled', true); //Will reactivate it on .close()
+
+      $scope.$broadcast('uis:activate');
+
       ctrl.open = true;
-      ctrl.activeMatchIndex = -1;
 
       ctrl.activeIndex = ctrl.activeIndex >= ctrl.items.length ? 0 : ctrl.activeIndex;
 
@@ -261,15 +262,10 @@ uis.controller('uiSelectCtrl',
           }
         }
 
+        $scope.$broadcast('uis:select', item);
+
         var locals = {};
         locals[ctrl.parserResult.itemName] = item;
-
-        if(ctrl.multiple) {
-          ctrl.selected.push(item);
-          ctrl.sizeSearchInput();
-        } else {
-          ctrl.selected = item;
-        }
 
         $timeout(function(){
           ctrl.onSelectCallback($scope, {
@@ -278,7 +274,7 @@ uis.controller('uiSelectCtrl',
           });
         });
 
-        if (!ctrl.multiple || ctrl.closeOnSelect) {
+        if (ctrl.closeOnSelect) {
           ctrl.close(skipFocusser);
         }
         if ($event && $event.type === 'click') {
@@ -294,12 +290,9 @@ uis.controller('uiSelectCtrl',
     if (ctrl.ngModel && ctrl.ngModel.$setTouched) ctrl.ngModel.$setTouched();
     _resetSearchInput();
     ctrl.open = false;
-    if (!ctrl.multiple){
-      $timeout(function(){
-        ctrl.focusser.prop('disabled', false);
-        if (!skipFocusser) ctrl.focusser[0].focus();
-      },0,false);
-    }
+
+    $scope.$broadcast('uis:close', skipFocusser);
+
   };
 
   ctrl.setFocus = function(){
@@ -332,12 +325,6 @@ uis.controller('uiSelectCtrl',
       }
 
       return isLocked;
-  };
-
-  ctrl.getPlaceholder = function(){
-    //Refactor single?
-    if(ctrl.multiple && ctrl.selected.length) return;
-    return ctrl.placeholder;
   };
 
   var sizeWatch = null;

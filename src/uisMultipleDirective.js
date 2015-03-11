@@ -33,6 +33,11 @@ uis.directive('uisMultiple', ['uiSelectMinErr', function(uiSelectMinErr) {
 
       };
 
+      ctrl.getPlaceholder = function(){
+        //Refactor single?
+        if($select.selected.length) return;
+        return $select.placeholder;
+      };
 
 
     }],
@@ -138,6 +143,15 @@ uis.directive('uisMultiple', ['uiSelectMinErr', function(uiSelectMinErr) {
         }
         $select.selected = ngModel.$viewValue;
       };
+
+      scope.$on('uis:select', function (event, item) {
+        $select.selected.push(item);
+        $select.sizeSearchInput();
+      });
+
+      scope.$on('uis:activate', function () {
+        $select.activeMatchIndex = -1;
+      });
 
       scope.$watch('$select.disabled', function(newValue, oldValue) {
         // As the search input field may now become visible, it may be necessary to recompute its size
