@@ -22,7 +22,7 @@ uis.controller('uiSelectCtrl',
   ctrl.placeholder = uiSelectConfig.placeholder;
   ctrl.search = EMPTY_SEARCH;
   ctrl.activeIndex = 0;
-  ctrl.activeMatchIndex = -1;
+
   ctrl.items = [];
   ctrl.selected = undefined;
   ctrl.open = false;
@@ -456,12 +456,6 @@ uis.controller('uiSelectCtrl',
   ctrl.searchInput.on('tagged', function() {
     $timeout(function() {
       _resetSearchInput();
-    });
-  });
-
-  ctrl.searchInput.on('blur', function() {
-    $timeout(function() {
-      ctrl.activeMatchIndex = -1;
     });
   });
 

@@ -1,4 +1,4 @@
-uis.directive('uisMultiple', ['uiSelectMinErr', function(uiSelectMinErr) {
+uis.directive('uisMultiple', ['uiSelectMinErr','$timeout', function(uiSelectMinErr, $timeout) {
   return {
     restrict: 'EA',
     require: ['^uiSelect', '^ngModel'],
@@ -7,6 +7,8 @@ uis.directive('uisMultiple', ['uiSelectMinErr', function(uiSelectMinErr) {
 
       var ctrl = this;
       var $select = $scope.$select;
+
+      ctrl.activeMatchIndex = -1;
 
       // Remove item from multiple select
       ctrl.removeChoice = function(index){
@@ -20,7 +22,7 @@ uis.directive('uisMultiple', ['uiSelectMinErr', function(uiSelectMinErr) {
         locals[$select.parserResult.itemName] = removedChoice;
 
         $select.selected.splice(index, 1);
-        $select.activeMatchIndex = -1;
+        ctrl.activeMatchIndex = -1;
         $select.sizeSearchInput();
 
         // Give some time for scope propagation.
@@ -150,7 +152,7 @@ uis.directive('uisMultiple', ['uiSelectMinErr', function(uiSelectMinErr) {
       });
 
       scope.$on('uis:activate', function () {
-        $select.activeMatchIndex = -1;
+        $selectMultiple.activeMatchIndex = -1;
       });
 
       scope.$watch('$select.disabled', function(newValue, oldValue) {
@@ -186,9 +188,9 @@ uis.directive('uisMultiple', ['uiSelectMinErr', function(uiSelectMinErr) {
             // none  = -1,
             first = 0,
             last  = length-1,
-            curr  = $select.activeMatchIndex,
-            next  = $select.activeMatchIndex+1,
-            prev  = $select.activeMatchIndex-1,
+            curr  = $selectMultiple.activeMatchIndex,
+            next  = $selectMultiple.activeMatchIndex+1,
+            prev  = $selectMultiple.activeMatchIndex-1,
             newIndex = curr;
 
         if(caretPosition > 0 || ($select.search.length && key == KEY.RIGHT)) return false;
@@ -199,13 +201,13 @@ uis.directive('uisMultiple', ['uiSelectMinErr', function(uiSelectMinErr) {
           switch(key){
             case KEY.LEFT:
               // Select previous/first item
-              if(~$select.activeMatchIndex) return prev;
+              if(~$selectMultiple.activeMatchIndex) return prev;
               // Select last item
               else return last;
               break;
             case KEY.RIGHT:
               // Open drop-down
-              if(!~$select.activeMatchIndex || curr === last){
+              if(!~$selectMultiple.activeMatchIndex || curr === last){
                 $select.activate();
                 return false;
               }
@@ -214,7 +216,7 @@ uis.directive('uisMultiple', ['uiSelectMinErr', function(uiSelectMinErr) {
               break;
             case KEY.BACKSPACE:
               // Remove selected item and select previous/first
-              if(~$select.activeMatchIndex){
+              if(~$selectMultiple.activeMatchIndex){
                 $selectMultiple.removeChoice(curr);
                 return prev;
               }
@@ -223,8 +225,8 @@ uis.directive('uisMultiple', ['uiSelectMinErr', function(uiSelectMinErr) {
               break;
             case KEY.DELETE:
               // Remove selected item and select next item
-              if(~$select.activeMatchIndex){
-                $selectMultiple.removeChoice($select.activeMatchIndex);
+              if(~$selectMultiple.activeMatchIndex){
+                $selectMultiple.removeChoice($selectMultiple.activeMatchIndex);
                 return curr;
               }
               else return false;
@@ -233,8 +235,8 @@ uis.directive('uisMultiple', ['uiSelectMinErr', function(uiSelectMinErr) {
 
         newIndex = getNewActiveMatchIndex();
 
-        if(!$select.selected.length || newIndex === false) $select.activeMatchIndex = -1;
-        else $select.activeMatchIndex = Math.min(last,Math.max(first,newIndex));
+        if(!$select.selected.length || newIndex === false) $selectMultiple.activeMatchIndex = -1;
+        else $selectMultiple.activeMatchIndex = Math.min(last,Math.max(first,newIndex));
 
         return true;
       }
@@ -380,6 +382,11 @@ uis.directive('uisMultiple', ['uiSelectMinErr', function(uiSelectMinErr) {
         return dupeIndex;
       }
 
+      $select.searchInput.on('blur', function() {
+        $timeout(function() {
+          $selectMultiple.activeMatchIndex = -1;
+        });
+      });
 
     }
   };
